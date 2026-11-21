@@ -39,6 +39,18 @@ async def save_tendencies(c: commands.Context):
     f.write(json.dumps(tendencies, indent=2))
   await c.send("Saved.")
 
+@bot.command(aliases=["rt", "reload", "rl"])
+@commands.is_owner()
+async def reload_tendencies(c: commands.Context):
+  """
+  Owner only; reload my tendencies for manual profanity check
+  """
+  global tendencies
+  await c.reply("Loading...")
+  with open("tendencies.json", "r") as f:
+    tendencies = json.load(f)
+  await c.send("Loaded.")
+
 @bot.event
 async def on_message(m: Message):
   await bot.process_commands(m)
@@ -48,9 +60,9 @@ async def on_message(m: Message):
     t = []
     for j in _t:
       t.extend(j.split(" "))
-    print(f"\"{m.content}\" {t}", end="\n\n")
     t = [x for x in t if x.strip()]
     t = [x for x in t if "https://" not in x]
+    print(f"\"{m.content}\" {t}", end="\n\n")
     for i, st in enumerate(t):
       if i != len(t) - 1:
         if not tendencies.get(st): tendencies[st] = []
