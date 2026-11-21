@@ -25,7 +25,8 @@ def add_transition(tendency: str) -> None:
   for j in _t:
     t.extend(j.split(" "))
   t = [x for x in t if x.strip()]
-  t = [x for x in t if "https://" not in x]
+  # WHAT THE FUCK
+  t = [x for x in t if not re.search(r"/^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#()?&//=]*)$/", x)]
   t = [x for x in t if not re.search(r"<.+>", x)]
   print(f"\"{tendency}\" {t}", end="\n\n")
   for i, st in enumerate(t):
