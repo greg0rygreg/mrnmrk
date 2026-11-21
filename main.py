@@ -100,7 +100,7 @@ async def train(c: commands.Context, amount: int = 50, channel: discord.TextChan
 @bot.command(aliases=["generate", "speak", "talk", "gibberish"])
 async def gen(c: commands.Context, count: int = random.randint(10, 100)):
   """
-  Make me speak! You can also say "merenus"
+  Make me speak! You can also @mention me
   """
   async with c.typing():
     m2 = generate(count)
