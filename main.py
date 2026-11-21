@@ -27,12 +27,12 @@ def add_tendency(tendency: str) -> None:
     x for x in t \
     if x.strip() \
     or "https://" not in x \
-    or not re.search("<@\d*>", x)
+    or not re.search("<@\\d*>", x)
   ]
   print(f"\"{tendency}\" {t}", end="\n\n")
   for i, st in enumerate(t):
     if i != len(t) - 1:
-      if st != t[i+1]: continue
+      if st == t[i+1]: continue
       if not tendencies.get(st): tendencies[st] = []
       tendencies[st].append(t[i+1])
 
