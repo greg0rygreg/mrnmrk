@@ -7,8 +7,8 @@ import aiofiles
 import discord
 from discord.ext import commands
 from discord.flags import Intents
-from dotenv import load_dotenv
 from discord.abc import Messageable
+from dotenv import load_dotenv
 
 load_dotenv()
 
