@@ -31,7 +31,7 @@ def add_tendency(tendency: str) -> None:
   ]
   print(f"\"{tendency}\" {t}", end="\n\n")
   for i, st in enumerate(t):
-    if i != len(t) - 1:
+    if i != len(t) - 1 or st != t[i+1]:
       if not tendencies.get(st): tendencies[st] = []
       tendencies[st].append(t[i+1])
 
