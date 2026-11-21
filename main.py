@@ -7,7 +7,6 @@ import aiofiles
 import discord
 from discord.ext import commands
 from discord.flags import Intents
-from discord.abc import Messageable
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -82,7 +81,7 @@ async def reload_tendencies(c: commands.Context):
 
 @bot.command(aliases=["view", "read", "learn"])
 @commands.is_owner()
-async def train(c: commands.Context, amount: int = 50, channel: Messageable = commands.parameter(default=lambda c: c.channel)):
+async def train(c: commands.Context, amount: int = 50, channel: discord.TextChannel = commands.parameter(default=lambda c: c.channel)):
   """
   Owner only; train my transitions on X amount of messages in a channel
   """
