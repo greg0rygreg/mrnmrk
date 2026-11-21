@@ -36,7 +36,7 @@ async def save_tendencies(c: commands.Context):
   """
   await c.reply("Saving...")
   with open("tendencies.json", "w") as f:
-    f.write(json.dumps(tendencies, indent=2))
+    f.write(json.dumps(tendencies))
   await c.send("Saved.")
 
 @bot.command(aliases=["rt", "reload", "rl"])
