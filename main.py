@@ -3,10 +3,11 @@ import os
 import random
 import re
 
+import discord
 from discord.ext import commands
 from discord.flags import Intents
 from dotenv import load_dotenv
-from discord import Message, CustomActivity
+from discord.abc import MessageableChannel
 
 load_dotenv()
 
@@ -14,11 +15,11 @@ bot = commands.Bot(command_prefix="m;", intents=Intents.all())
 
 tendencies: dict[str, list[str]] = {}
 
-with open("tendencies.json", "r") as f:
+with open("transitions.json", "r") as f:
   tendencies = json.load(f)
-print("Tendencies loaded")
+print("Transitions loaded")
 
-def add_tendency(tendency: str) -> None:
+def add_transition(tendency: str) -> None:
   _t = tendency.split("\n")
   t = []
   for j in _t:
@@ -27,7 +28,7 @@ def add_tendency(tendency: str) -> None:
     x for x in t \
     if x.strip() \
     or "https://" not in x \
-    or not re.search("<@\\d*>", x)
+    or not re.search(r"<@\d*>", x)
   ]
   print(f"\"{tendency}\" {t}", end="\n\n")
   for i, st in enumerate(t):
@@ -51,7 +52,7 @@ def generate(word_count: int) -> str:
 @bot.event
 async def on_ready():
   print(f"{bot.user.name} is ready")
-  await bot.change_presence(activity=CustomActivity(name=generate(5), emoji=":speech_balloon:"))
+  await bot.change_presence(activity=discord.CustomActivity(name=generate(5), emoji=":speech_balloon:"))
 
 @bot.command()
 async def ping(c: commands.Context):
@@ -64,24 +65,41 @@ async def ping(c: commands.Context):
 @commands.is_owner()
 async def save_tendencies(c: commands.Context):
   """
-  Owner only; save my tendencies for later use
+  Owner only; save my transitions for later use
   """
-  await c.reply("Saving...")
-  with open("tendencies.json", "w") as f:
-    f.write(json.dumps(tendencies))
+  async with c.typing():
+    with open("transitions.json", "w") as f:
+      f.write(json.dumps(tendencies))
   await c.send("Saved.")
 
 @bot.command(aliases=["rt", "reload", "rl"])
 @commands.is_owner()
 async def reload_tendencies(c: commands.Context):
   """
-  Owner only; reload my tendencies for manual profanity check
+  Owner only; reload my transitions for manual profanity check
   """
   global tendencies
-  await c.reply("Loading...")
-  with open("tendencies.json", "r") as f:
-    tendencies = json.load(f)
-  await c.send("Loaded.")
+  async with c.typing():
+    with open("transitions.json", "r") as f:
+      tendencies = json.load(f)
+  await c.reply("Loaded.")
+
+@bot.command(aliases=["view", "read", "learn"])
+@commands.is_owner()
+async def train(c: commands.Context, amount: int = 50, channel: MessageableChannel = commands.parameter(default=lambda c: c.channel)):
+  """
+  Owner only; train my transitions on X amount of messages in a channel
+  """
+  async with c.typing():
+    try:
+      t = 0
+      async for m in channel.history(limit=amount):
+        add_transition(m.content)
+        t += 1
+      await c.reply(f"Added {t} transitions.")
+
+    except discord.Forbidden:
+      await c.reply("Can't read channel messages. Are you sure you gave me the Read Message History permission?")
 
 @bot.command(aliases=["generate", "speak", "talk", "gibberish"])
 async def gen(c: commands.Context, count: int = random.randint(10, 100)):
@@ -93,10 +111,10 @@ async def gen(c: commands.Context, count: int = random.randint(10, 100)):
   await c.reply(m2)
 
 @bot.event
-async def on_message(m: Message):
+async def on_message(m: discord.Message):
   await bot.process_commands(m)
   if m.author.bot or m.content.startswith("m;"): return
-  if not m.content.strip() != bot.user.mention: add_tendency(m.content)
+  if not m.content.strip() != bot.user.mention: add_transition(m.content)
   else:
     async with m.channel.typing():
       m2 = generate(random.randint(10, 100))
