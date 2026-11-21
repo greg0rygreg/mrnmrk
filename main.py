@@ -2,6 +2,7 @@ import json
 import os
 import random
 import re
+import aiofiles
 
 import discord
 from discord.ext import commands
@@ -64,9 +65,8 @@ async def save_tendencies(c: commands.Context):
   """
   Owner only; save my transitions for later use
   """
-  async with c.typing():
-    with open("transitions.json", "w") as f:
-      f.write(json.dumps(tendencies))
+  async with c.typing(), aiofiles.open("transitions.json", "w") as f:
+    await f.write(json.dumps(tendencies))
   await c.send("Saved.")
 
 @bot.command(aliases=["rt", "reload", "rl"])
@@ -76,9 +76,8 @@ async def reload_tendencies(c: commands.Context):
   Owner only; reload my transitions for manual profanity check
   """
   global tendencies
-  async with c.typing():
-    with open("transitions.json", "r") as f:
-      tendencies = json.load(f)
+  async with c.typing(), aiofiles.open("transitions.json", "r") as f:
+    tendencies = json.loads(await f.read())
   await c.reply("Loaded.")
 
 @bot.command(aliases=["view", "read", "learn"])
@@ -95,7 +94,6 @@ async def train(c: commands.Context, amount: int = 50, channel: Messageable = co
         add_transition(m.content)
         t += 1
       await c.reply(f"Added {t} transitions.")
-
     except discord.Forbidden:
       await c.reply("Can't read channel messages. Are you sure you gave me the Read Message History permission?")
 
