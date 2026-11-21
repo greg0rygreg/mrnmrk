@@ -1,9 +1,9 @@
-import json
 import os
 import random
 import re
 import aiofiles
 
+import simdjson
 import discord
 from discord.ext import commands
 from discord.flags import Intents
@@ -16,7 +16,7 @@ bot = commands.Bot(command_prefix="m;", intents=Intents.all())
 tendencies: dict[str, list[str]] = {}
 
 with open("transitions.json", "r") as f:
-  tendencies = json.load(f)
+  tendencies = simdjson.load(f)
 print("Transitions loaded")
 
 def add_transition(tendency: str) -> None:
@@ -66,7 +66,7 @@ async def save_tendencies(c: commands.Context):
   Owner only; save my transitions for later use
   """
   async with c.typing(), aiofiles.open("transitions.json", "w") as f:
-    await f.write(json.dumps(tendencies))
+    await f.write(simdjson.dumps(tendencies))
   await c.send("Saved.")
 
 @bot.command(aliases=["rt", "reload", "rl"])
@@ -77,7 +77,7 @@ async def reload_tendencies(c: commands.Context):
   """
   global tendencies
   async with c.typing(), aiofiles.open("transitions.json", "r") as f:
-    tendencies = json.loads(await f.read())
+    tendencies = simdjson.loads(await f.read())
   await c.reply("Loaded.")
 
 @bot.command(aliases=["view", "read", "learn"])
@@ -115,6 +115,5 @@ async def on_message(m: discord.Message):
     async with m.channel.typing():
       m2 = generate(random.randint(10, 100))
     await m.channel.send(m2)
-
 
 bot.run(os.getenv("TOKEN", ""))
