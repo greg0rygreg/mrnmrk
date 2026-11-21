@@ -1,6 +1,7 @@
 import json
 import os
 import random
+import re
 
 from discord import Message
 from discord.ext import commands
@@ -13,13 +14,27 @@ bot = commands.Bot(command_prefix="m;", intents=Intents.all())
 
 tendencies: dict[str, list[str]] = {}
 
+def add_tendencies(tendency: str) -> None:
+  _t = tendency.split("\n")
+  t = []
+  for j in _t:
+    t.extend(j.split(" "))
+  t = [x for x in t if x.strip()]
+  t = [x for x in t if "https://" not in x]
+  t = [x for x in t if not re.search("<@\d*>", x)]
+  print(f"\"{tendency}\" {t}", end="\n\n")
+  for i, st in enumerate(t):
+    if i != len(t) - 1:
+      if not tendencies.get(st): tendencies[st] = []
+      tendencies[st].append(t[i+1])
+
 @bot.event
 async def on_ready():
   global tendencies
   print(f"{bot.user.name} is ready")
   with open("tendencies.json", "r") as f:
     tendencies = json.load(f)
-  print(f"Tendencies loaded")
+  print("Tendencies loaded")
 
 @bot.command()
 async def ping(c: commands.Context):
@@ -55,18 +70,7 @@ async def reload_tendencies(c: commands.Context):
 async def on_message(m: Message):
   await bot.process_commands(m)
   if m.author.bot or m.content.startswith("m;"): return
-  if m.content.lower() != "merenus":
-    _t = m.content.split("\n")
-    t = []
-    for j in _t:
-      t.extend(j.split(" "))
-    t = [x for x in t if x.strip()]
-    t = [x for x in t if "https://" not in x]
-    print(f"\"{m.content}\" {t}", end="\n\n")
-    for i, st in enumerate(t):
-      if i != len(t) - 1:
-        if not tendencies.get(st): tendencies[st] = []
-        tendencies[st].append(t[i+1])
+  if m.content.lower() != bot.user.mention: add_tendencies(m.content)
   else:
     c = ""
     m2 = ""
