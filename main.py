@@ -96,7 +96,7 @@ async def gen(c: commands.Context, count: int = random.randint(10, 100)):
 async def on_message(m: Message):
   await bot.process_commands(m)
   if m.author.bot or m.content.startswith("m;"): return
-  if not m.content.startswith(bot.user.mention): add_tendency(m.content)
+  if not m.content.strip() != bot.user.mention: add_tendency(m.content)
   else:
     async with m.channel.typing():
       m2 = generate(random.randint(10, 100))
