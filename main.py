@@ -50,6 +50,7 @@ async def on_message(m: Message):
       t.extend(j.split(" "))
     print(f"\"{m.content}\" {t}", end="\n\n")
     t = [x for x in t if x.strip()]
+    t = [x for x in t if "https://" not in x]
     for i, st in enumerate(t):
       if i != len(t) - 1:
         if not tendencies.get(st): tendencies[st] = []
