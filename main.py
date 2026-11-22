@@ -107,12 +107,12 @@ async def train(c: discord.Interaction, amount: int = 50):
     return
   await c.response.defer()
   try:
-    t = 0
+    before = len(transitions)
     async for m in c.channel.history(limit=amount):
       if m.author.bot or m.content.startswith("m;"): continue
       add_transition(m.content)
-      t += 1
-    await c.followup.send(f"Added {t} transitions.")
+    after = len(transitions)
+    await c.followup.send(f"Added {after-before} states.")
   except discord.Forbidden:
     if bot.user in c.guild.members:
       await c.followup.send("Can't read channel messages. Ask the owner if he gave me the Read Message History permission?")
@@ -135,16 +135,16 @@ async def file_train(c: discord.Interaction, file: discord.Attachment):
     await c.response.send_message("You're not the owner.", ephemeral=True)
     return
   await c.response.defer()
-  if not file.filename.endswith(".txt"):
+  if (file.content_type or "None;None").split(";")[0] != "text/plain":
     await c.followup.send("A text file was not provided.")
     return
-  t = 0
   d = await file.read()
+  before = len(transitions)
   for m in d.decode().split("\n"):
     if m.strip().startswith("m;"): continue
     add_transition(m.strip())
-    t += 1
-  await c.followup.send(f"Added {t} transitions.")
+  after = len(transitions)
+  await c.followup.send(f"Added {after-before} states.")
 
 bot.tree.add_command(trans)
 
