@@ -135,7 +135,7 @@ async def file_train(c: discord.Interaction, file: discord.Attachment):
     await c.response.send_message("You're not the owner.", ephemeral=True)
     return
   await c.response.defer()
-  if not f.title.endswith(".txt"):
+  if not file.filename.endswith(".txt"):
     await c.followup.send("A text file was not provided.")
     return
   t = 0
