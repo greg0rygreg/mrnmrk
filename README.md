@@ -14,7 +14,7 @@ https://discord.com/oauth2/authorize?client_id=1573727390507598015
 
 **`transitions clear`**: Clears transitions from RAM. Do NOT save unless you are ABSOLUTELY sure of what you're doing.
 
-**`transitions add [amount] [channel]`**: Adds [amount] messages from [channel] as transitions
+**`transitions add [amount]`**: Adds [amount] messages from the current channel as transitions
 
 **`generate [count]`**: Makes the bot talk using [count] words
 
