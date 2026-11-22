@@ -8,13 +8,15 @@ https://discord.com/oauth2/authorize?client_id=1573727390507598015
 
 **`ping`**: Shows latency in ms and amount of transitions saved
 
-**`transitions save`**: Saves the transitions it's recorded before shutdown. **Remember to use**
+**`transitions save`**: Saves the transitions it's recorded
 
 **`transitions load`**: Loads transitions from disk
 
-**`transitions clear`**: Clears transitions from RAM. Do NOT save unless you are ABSOLUTELY sure of what you're doing.
+**`transitions clear`**: Clears transitions from RAM. You are f❤️ked once you use this (unless the python process dies unexpectedly)
 
 **`transitions add [amount]`**: Adds [amount] messages from the current channel as transitions
+
+**`transitions text_train <file>`**: Adds \<file> as transitions
 
 **`generate [count]`**: Makes the bot talk using [count] words
 
