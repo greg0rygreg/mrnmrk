@@ -81,6 +81,7 @@ async def load_tendencies(c: discord.Interaction):
   global transitions
   async with aiofiles.open("transitions.json", "r") as f:
     transitions = simdjson.loads(await f.read())
+  await bot.change_presence(activity=discord.CustomActivity(name=generate(5) or "(empty)"))
   await c.response.send_message("Loaded.")
 
 @trans.command(name="add", description="Owner only; train me on X amount of messages in Y channel")
@@ -99,6 +100,8 @@ async def train(c: discord.Interaction, amount: int = 50, channel: discord.TextC
     await c.followup.send(f"Added {t} transitions.")
   except discord.Forbidden:
     await c.followup.send("Can't read channel messages. Ask the owner if he gave me the Read Message History permission?")
+  except discord.app_commands.errors.TransformerError:
+    await c.followup.send("Can't read channel messages. Transformer error.")
 
 @trans.command(name="clear", description="Owner only; clear EVERY SINGLE TRANSITION. This is reversable, as long as you don't save")
 async def clear(c: discord.Interaction):
