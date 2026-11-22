@@ -130,6 +130,7 @@ bot.tree.add_command(trans)
 @bot.tree.command(name="generate", description="Make me speak! You can also @mention me")
 @discord.app_commands.describe(count="Word count (default: from 10 to 100)")
 async def gen(c: discord.Interaction, count: int = random.randint(10, 100)):
+  await c.response.defer()
   try:
     await c.response.send_message(generate(count))
   except HTTPException:
