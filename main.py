@@ -13,10 +13,10 @@ load_dotenv()
 
 bot = commands.Bot(command_prefix="m;", intents=Intents.all())
 
-tendencies: dict[str, list[str]] = {}
+transitions: dict[str, list[str]] = {}
 
 with open("transitions.json", "r") as f:
-  tendencies = simdjson.load(f)
+  transitions = simdjson.load(f)
 print("Transitions loaded")
 
 def add_transition(tendency: str) -> None:
@@ -32,16 +32,16 @@ def add_transition(tendency: str) -> None:
   for i, st in enumerate(t):
     if i != len(t) - 1:
       if st == t[i+1]: continue
-      if not tendencies.get(st): tendencies[st] = []
-      tendencies[st].append(t[i+1])
+      if not transitions.get(st): transitions[st] = []
+      transitions[st].append(t[i+1])
 
 def generate(word_count: int) -> str:
   c = ""
   m2 = ""
   for i in range(word_count):
-    while not tendencies.get(c):
-      c = random.choice(list(tendencies.keys()))
-    v = random.choice(tendencies[c])
+    while not transitions.get(c):
+      c = random.choice(list(transitions.keys()))
+    v = random.choice(transitions[c])
     c = v
     m2 += f"{v} "
 
@@ -57,27 +57,27 @@ async def ping(c: commands.Context):
   """
   Shows how long I take to answer
   """
-  await c.reply(f"Pong!\n:wireless: {round(bot.latency*1000, 2)}ms\n:speech_balloon: {len(tendencies)} tendencies")
+  await c.reply(f"Pong!\n:wireless: {round(bot.latency*1000, 2)}ms\n:speech_balloon: {len(transitions)} states (top-level transitions)")
 
-@bot.command(aliases=["st", "save"])
+@bot.command(aliases=["st", "save", "s"])
 @commands.is_owner()
-async def save_tendencies(c: commands.Context):
+async def save_transitions(c: commands.Context):
   """
   Owner only; save my transitions for later use
   """
   async with c.typing(), aiofiles.open("transitions.json", "w") as f:
-    await f.write(simdjson.dumps(tendencies))
+    await f.write(simdjson.dumps(transitions))
   await c.send("Saved.")
 
-@bot.command(aliases=["rt", "reload", "rl"])
+@bot.command(aliases=["lt", "load", "l"])
 @commands.is_owner()
-async def reload_tendencies(c: commands.Context):
+async def load_tendencies(c: commands.Context):
   """
   Owner only; reload my transitions for manual profanity check
   """
-  global tendencies
+  global transitions
   async with c.typing(), aiofiles.open("transitions.json", "r") as f:
-    tendencies = simdjson.loads(await f.read())
+    transitions = simdjson.loads(await f.read())
   await c.reply("Loaded.")
 
 @bot.command(aliases=["view", "read", "learn"])
@@ -86,16 +86,16 @@ async def train(c: commands.Context, amount: int = 50, channel: discord.TextChan
   """
   Owner only; train my transitions on X amount of messages in a channel
   """
-  async with c.typing():
-    try:
-      t = 0
+  try:
+    t = 0
+    async with c.typing():
       async for m in channel.history(limit=amount):
         if m.author.bot or m.content.startswith("m;"): continue
         add_transition(m.content)
         t += 1
-      await c.reply(f"Added {t} transitions.")
-    except discord.Forbidden:
-      await c.reply("Can't read channel messages. Are you sure you gave me the Read Message History permission?")
+    await c.reply(f"Added {t} transitions.")
+  except discord.Forbidden:
+    await c.reply("Can't read channel messages. Are you sure you gave me the Read Message History permission?")
 
 @bot.command(aliases=["generate", "speak", "talk", "gibberish"])
 async def gen(c: commands.Context, count: int = random.randint(10, 100)):
@@ -110,7 +110,7 @@ async def gen(c: commands.Context, count: int = random.randint(10, 100)):
 async def on_message(m: discord.Message):
   await bot.process_commands(m)
   if m.author.bot or m.content.startswith("m;"): return
-  if not m.content.strip() == bot.user.mention: add_transition(m.content)
+  if m.content.strip() != bot.user.mention: add_transition(m.content)
   else:
     async with m.channel.typing():
       m2 = generate(random.randint(10, 100))
