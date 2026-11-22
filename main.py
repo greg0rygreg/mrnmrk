@@ -16,7 +16,7 @@ transitions: dict[str, list[str]] = {}
 slurs = []
 
 with open("Swear_20Words.txt", "r") as f:
-  slurs = f.read().split()
+  slurs = f.read().split("\n")
 print(f"{len(slurs)} naughty words loaded")
 
 with open("transitions.json", "r") as f:
