@@ -74,6 +74,8 @@ async def on_ready():
 
 
 @bot.tree.command(name="ping", description="Shows how long I take to answer and some other things")
+@discord.app_commands.allowed_installs(guilds=True, users=True)
+@discord.app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
 async def ping(c: discord.Interaction):
   await c.response.send_message(f"Pong!\n:wireless: {round(bot.latency*1000, 2)}ms\n:speech_balloon: {len(transitions)} states (top-level transitions)")
 
@@ -150,6 +152,8 @@ bot.tree.add_command(trans)
 
 @bot.tree.command(name="generate", description="Make me speak! You can also @mention me")
 @discord.app_commands.describe(count="Word count (default: from 10 to 100)")
+@discord.app_commands.allowed_installs(guilds=True, users=True)
+@discord.app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
 async def gen(c: discord.Interaction, count: int = random.randint(10, 100)):
   await c.response.defer()
   try:
