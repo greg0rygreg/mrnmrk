@@ -29,8 +29,8 @@ def add_transition(tendency: str) -> None:
   for j in _t:
     t.extend(j.split(" "))
   t = [x for x in t if x.strip()]
-  t = [x for x in t if x not in slurs]
-  t = [x for x in t if "https://" not in x]
+  t = [x for x in t if x.lower() not in slurs]
+  t = [x for x in t if "https://" not in x.lower()]
   t = [x for x in t if not re.search(r"<.+>", x)]
   print(f"\"{tendency}\" {t}", end="\n\n")
   for i, st in enumerate(t):
@@ -90,7 +90,7 @@ async def train(c: discord.Interaction, amount: int = 50, channel: discord.TextC
     return
   await c.response.defer()
   try:
-    if channel is None: channel = c.message.channel
+    if channel is None: channel = c.channel
     t = 0
     async for m in channel.history(limit=amount):
       if m.author.bot or m.content.startswith("m;"): continue
