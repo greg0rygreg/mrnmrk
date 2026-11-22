@@ -79,9 +79,16 @@ async def on_ready():
 async def ping(c: discord.Interaction):
   await c.response.send_message(f"Pong!\n:wireless: {round(bot.latency*1000, 2)}ms\n:speech_balloon: {len(transitions)} states (top-level transitions)")
 
-trans = discord.app_commands.Group(name="transitions", description="Transitions and states related commands")
+@bot.group(name='trans')
+@discord.app_commands.allowed_installs(guilds=True, users=True)
+@discord.app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
+async def trans(self, c: discord.Interaction):
+  if c.invoked_subcommand is None:
+    await c.response.send_message("Choose a subcommand.")
 
 @trans.command(name="save", description="Owner only; save my transitions for testing")
+@discord.app_commands.allowed_installs(guilds=True, users=True)
+@discord.app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
 async def save_transitions(c: discord.Interaction):
   if c.user.id != bot.owner_id:
     await c.response.send_message("You're not the owner.", ephemeral=True)
@@ -91,6 +98,8 @@ async def save_transitions(c: discord.Interaction):
   await c.response.send_message("Saved.")
 
 @trans.command(name="load", description="Owner only; reload my transitions for manual profanity check")
+@discord.app_commands.allowed_installs(guilds=True, users=True)
+@discord.app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
 async def load_tendencies(c: discord.Interaction):
   if c.user.id != bot.owner_id:
     await c.response.send_message("You're not the owner.", ephemeral=True)
@@ -103,6 +112,8 @@ async def load_tendencies(c: discord.Interaction):
 
 @trans.command(name="add", description="Owner only; train me on X amount of messages in this channel")
 @discord.app_commands.describe(amount="Message count (default: 50)")
+@discord.app_commands.allowed_installs(guilds=True, users=True)
+@discord.app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
 async def train(c: discord.Interaction, amount: int = 50):
   if c.user.id != bot.owner_id:
     await c.response.send_message("You're not the owner.", ephemeral=True)
@@ -122,6 +133,8 @@ async def train(c: discord.Interaction, amount: int = 50):
       await c.followup.send("Can't read channel messages. This command was ran while I'm installed as a user app, not server bot.")
 
 @trans.command(name="clear", description="Owner only; clear EVERY SINGLE TRANSITION. THIS IS (almost) IRREVERSABLE.")
+@discord.app_commands.allowed_installs(guilds=True, users=True)
+@discord.app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
 async def clear(c: discord.Interaction):
   if c.user.id != bot.owner_id:
     await c.response.send_message("You're not the owner.", ephemeral=True)
@@ -132,6 +145,8 @@ async def clear(c: discord.Interaction):
 
 @trans.command(name="text_train", description="Owner only; train me with a text file")
 @discord.app_commands.describe(file="Text file")
+@discord.app_commands.allowed_installs(guilds=True, users=True)
+@discord.app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
 async def file_train(c: discord.Interaction, file: discord.Attachment):
   if c.user.id != bot.owner_id:
     await c.response.send_message("You're not the owner.", ephemeral=True)
@@ -147,8 +162,6 @@ async def file_train(c: discord.Interaction, file: discord.Attachment):
     add_transition(m.strip())
   after = len(transitions)
   await c.followup.send(f"Added {after-before} states.")
-
-bot.tree.add_command(trans)
 
 @bot.tree.command(name="generate", description="Make me speak! You can also @mention me")
 @discord.app_commands.describe(count="Word count (default: from 10 to 100)")
