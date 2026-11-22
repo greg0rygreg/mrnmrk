@@ -132,9 +132,9 @@ bot.tree.add_command(trans)
 async def gen(c: discord.Interaction, count: int = random.randint(10, 100)):
   await c.response.defer()
   try:
-    await c.response.send_message(generate(count))
+    await c.followup.send(generate(count))
   except HTTPException:
-    await c.response.send_message("Final message too long. Probably.")
+    await c.followup.send("Final message too long. Probably.")
 
 @bot.event
 async def on_message(m: discord.Message):
