@@ -20,6 +20,23 @@ https://discord.com/oauth2/authorize?client_id=1573727390507598015
 
 **Mentioning the bot**: Makes the bot talk using 10-100 words
 
+# Running
+## Requirements
+- Python
+  - `discord`
+  - `aiofiles`
+  - `pysimdjson`
+  - `dotenv`
+- A Discord bot
+- A `.env` file containing your bot's token (`TOKEN`) and your Discord user id (`OWNER`)
+- Some patience
+- Optional: `git` if you're tech-savvy
+
+## Actually running it
+1. Clone the repo (using `git clone` or the website)
+2. Open a terminal, `cd` into the repo and type `python main.py`
+3. done
+
 # Honourable mentions
 timgaunt: [Swear word list](https://gist.github.com/timgaunt/a7e9fff6f04c20925b3282a5063e08e9#file-swear-words-txt)
 

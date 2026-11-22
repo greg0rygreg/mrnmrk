@@ -53,9 +53,9 @@ def generate(word_count: int) -> str:
 
 @bot.event
 async def on_ready():
-  bot.owner_id = int(os.getenv("OWNER") or 0)
+  bot.owner_id = int(os.getenv("OWNER"))
   await bot.tree.sync()
-  await bot.change_presence(activity=discord.CustomActivity(name=generate(5), emoji="💬"))
+  await bot.change_presence(activity=discord.CustomActivity(name=generate(5) or "(empty)"))
   print(f"{bot.user.name} is ready")
 
 @bot.tree.command(name="ping", description="Shows how long I take to answer and some other things")
@@ -126,4 +126,4 @@ async def on_message(m: discord.Message):
       m2 = generate(random.randint(10, 100))
     await m.channel.send(m2)
 
-bot.run(os.getenv("TOKEN", ""))
+bot.run(os.getenv("TOKEN"))
