@@ -120,10 +120,7 @@ async def train(c: discord.Interaction, amount: int = 50):
     after = len(transitions)
     await c.followup.send(f"Added {after-before} states.")
   except discord.Forbidden:
-    if bot.user in c.guild.members:
-      await c.followup.send("Can't read channel messages. Ask the owner if he gave me the Read Message History permission?")
-    else:
-      await c.followup.send("Can't read channel messages. This command was ran while I'm installed as a user app, not server bot.")
+    await c.followup.send("Can't read channel messages. Ask the owner if he gave me the Read Message History permission?")
 
 @trans.command(name="clear", description="Owner only; clear EVERY SINGLE TRANSITION. THIS IS (almost) IRREVERSABLE.")
 async def clear(c: discord.Interaction):
