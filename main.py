@@ -1,4 +1,3 @@
-from discord import HTTPException
 import os
 import random
 import re
@@ -47,19 +46,22 @@ def add_transition(transition: str) -> None:
   print(f"\"{transition}\" {t}", end="\n\n")
   for i, st in enumerate(t):
     if i != len(t) - 1:
-      if st == t[i+1]: continue
+      if st.lower() == t[i+1].lower(): continue
       if not transitions.get(st): transitions[st] = []
       transitions[st].append(t[i+1])
 
 def generate(word_count: int) -> str:
   c = ""
   m2 = ""
-  for i in range(word_count):
-    while not transitions.get(c):
-      c = random.choice(list(transitions.keys()))
-    v = random.choice(transitions[c])
-    c = v
-    m2 += f"{v} "
+  try:
+    for i in range(word_count):
+      while not transitions.get(c):
+        c = random.choice(list(transitions.keys()))
+      v = random.choice(transitions[c])
+      c = v
+      m2 += f"{v} "
+  except:
+    m2 = "(empty)"
 
   return m2
 
@@ -67,7 +69,7 @@ def generate(word_count: int) -> str:
 async def on_ready():
   bot.owner_id = int(os.getenv("OWNER"))
   await bot.tree.sync()
-  await bot.change_presence(activity=discord.CustomActivity(name=generate(10) or "(empty)"))
+  await bot.change_presence(activity=discord.CustomActivity(name=generate(10)))
   print(f"{bot.user.name} is ready")
 
 
@@ -94,11 +96,11 @@ async def load_tendencies(c: discord.Interaction):
   global transitions
   async with aiofiles.open("transitions.json", "r") as f:
     transitions = simdjson.loads(await f.read())
-  await bot.change_presence(activity=discord.CustomActivity(name=generate(5) or "(empty)"))
+  await bot.change_presence(activity=discord.CustomActivity(name=generate(10)))
   await c.response.send_message("Loaded.")
 
 @trans.command(name="add", description="Owner only; train me on X amount of messages in this channel")
-@discord.app_commands.describe(amount="Message count")
+@discord.app_commands.describe(amount="Message count (default: 50)")
 async def train(c: discord.Interaction, amount: int = 50):
   if c.user.id != bot.owner_id:
     await c.response.send_message("You're not the owner.", ephemeral=True)
@@ -117,14 +119,32 @@ async def train(c: discord.Interaction, amount: int = 50):
     else:
       await c.followup.send("Can't read channel messages. This command was ran while I'm installed as a user app, not server bot.")
 
-@trans.command(name="clear", description="Owner only; clear EVERY SINGLE TRANSITION. This is reversable, as long as you don't save")
+@trans.command(name="clear", description="Owner only; clear EVERY SINGLE TRANSITION. THIS IS (almost) IRREVERSABLE.")
 async def clear(c: discord.Interaction):
   if c.user.id != bot.owner_id:
     await c.response.send_message("You're not the owner.", ephemeral=True)
     return
   global transitions
   transitions = {}
-  await c.response.send_message("Cleared. Do NOT save unless you are ABSOLUTELY sure of what you're doing.")
+  await c.response.send_message("Cleared. It's all gone, unless you unexpectedly terminate the python process.")
+
+@trans.command(name="text_train", description="Owner only; train me with a text file")
+@discord.app_commands.describe(file="Text file")
+async def file_train(c: discord.Interaction, file: discord.Attachment):
+  if c.user.id != bot.owner_id:
+    await c.response.send_message("You're not the owner.", ephemeral=True)
+    return
+  await c.response.defer()
+  if not f.title.endswith(".txt"):
+    await c.followup.send("A text file was not provided.")
+    return
+  t = 0
+  d = await file.read()
+  for m in d.decode().split("\n"):
+    if m.strip().startswith("m;"): continue
+    add_transition(m.strip())
+    t += 1
+  await c.followup.send(f"Added {t} transitions.")
 
 bot.tree.add_command(trans)
 
@@ -134,7 +154,7 @@ async def gen(c: discord.Interaction, count: int = random.randint(10, 100)):
   await c.response.defer()
   try:
     await c.followup.send(generate(count))
-  except HTTPException:
+  except discord.HTTPException:
     await c.followup.send("Final message too long. Probably.")
 
 @bot.event
