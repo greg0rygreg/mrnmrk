@@ -100,6 +100,15 @@ async def train(c: discord.Interaction, amount: int = 50, channel: discord.TextC
   except discord.Forbidden:
     await c.followup.send("Can't read channel messages. Ask the owner if he gave me the Read Message History permission?")
 
+@trans.command(name="clear", description="Owner only; clear EVERY SINGLE TRANSITION. This is reversable, as long as you don't save")
+async def clear(c: discord.Interaction):
+  if c.user.id != bot.owner_id:
+    await c.response.send_message("You're not the owner.", ephemeral=True)
+    return
+  global transitions
+  transitions = {}
+  await c.response.send_message("Cleared. Do NOT save unless you are ABSOLUTELY sure of what you're doing.")
+
 bot.tree.add_command(trans)
 
 @bot.tree.command(name="generate", description="Make me speak! You can also @mention me")
