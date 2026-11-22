@@ -43,7 +43,7 @@ def add_transition(transition: str) -> None:
   t = [x for x in t if x.strip()]
   t = [x for x in t if x.lower() not in slurs]
   t = [x for x in t if not re.search(r"<.+>", x)]
-  t = [x for x in t if not re.search(r"https?:/+")]
+  t = [x for x in t if not re.search(r"https?:/+", x.lower())]
   print(f"\"{transition}\" {t}", end="\n\n")
   for i, st in enumerate(t):
     if i != len(t) - 1:
