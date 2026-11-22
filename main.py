@@ -17,11 +17,11 @@ slurs = []
 
 with open("Swear_20Words.txt", "r") as f:
   slurs = f.read().split()
-print("Naughty words loaded")
+print(f"{len(slurs)} naughty words loaded")
 
 with open("transitions.json", "r") as f:
   transitions = simdjson.load(f)
-print("Transitions loaded")
+print(f"{len(transitions)} states loaded")
 
 def add_transition(tendency: str) -> None:
   _t = tendency.split("\n")
