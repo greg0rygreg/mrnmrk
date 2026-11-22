@@ -1,44 +1,29 @@
-# Merenus Markov
-*Welcome back! I hope you've had a good a rest. It's time to continue.*
+# Merenus Markov: Lite
+Smallest version of Merenus Markov I could possibly get without compromising much functionality
 
-A Discord bot that uses Markov chains to speak and listen  
-https://discord.com/oauth2/authorize?client_id=1573727390507598015
+This has not been tested, even once.
 
 # Commands
 
-**`ping`**: Shows latency in ms and amount of transitions saved
+**`m;save`**: Saves the transitions it's recorded before shutdown. **Remember to use**
 
-**`transitions save`**: Saves the transitions it's recorded before shutdown. **Remember to use**
-
-**`transitions load`**: Loads transitions from disk
-
-**`transitions clear`**: Clears transitions from RAM. Do NOT save unless you are ABSOLUTELY sure of what you're doing.
-
-**`transitions add [amount]`**: Adds [amount] messages from the current channel as transitions
-
-**`generate [count]`**: Makes the bot talk using [count] words
-
-**Mentioning the bot**: Makes the bot talk using 10-100 words
+**Mentioning the bot**: Makes the bot talk using 5-25 words
 
 # Running
 ## Requirements
 - Python
   - `discord`
   - `aiofiles`
-  - `pysimdjson`
   - `dotenv`
 - A Discord bot
 - A `.env` file containing your bot's token (`TOKEN`) and your Discord user id (`OWNER`)
-- Some patience
+- Some more patience
 - Optional: `git` if you're tech-savvy
 
 ## Actually running it
 1. Clone the repo (using `git clone` or the website)
 2. Open a terminal, `cd` into the repo and type `python main.py`
 3. done
-
-# Honourable mentions
-timgaunt: [Swear word list](https://gist.github.com/timgaunt/a7e9fff6f04c20925b3282a5063e08e9#file-swear-words-txt)
 
 # AI Disclosure
 No AI was used here. F❤️k off AI bros.
