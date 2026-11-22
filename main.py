@@ -35,16 +35,16 @@ with open("transitions.json", "r") as f:
   transitions = simdjson.load(f)
 print(f"{len(transitions)} states loaded")
 
-def add_transition(tendency: str) -> None:
-  _t = tendency.split("\n")
+def add_transition(transition: str) -> None:
+  _t = transition.split("\n")
   t = []
   for j in _t:
     t.extend(j.split(" "))
   t = [x for x in t if x.strip()]
   t = [x for x in t if x.lower() not in slurs]
-  t = [x for x in t if "https://" not in x.lower()]
   t = [x for x in t if not re.search(r"<.+>", x)]
-  print(f"\"{tendency}\" {t}", end="\n\n")
+  t = [x for x in t if not re.search(r"https?:/+")]
+  print(f"\"{transition}\" {t}", end="\n\n")
   for i, st in enumerate(t):
     if i != len(t) - 1:
       if st == t[i+1]: continue
@@ -67,7 +67,7 @@ def generate(word_count: int) -> str:
 async def on_ready():
   bot.owner_id = int(os.getenv("OWNER"))
   await bot.tree.sync()
-  await bot.change_presence(activity=discord.CustomActivity(name=generate(5) or "(empty)"))
+  await bot.change_presence(activity=discord.CustomActivity(name=generate(10) or "(empty)"))
   print(f"{bot.user.name} is ready")
 
 
@@ -98,6 +98,7 @@ async def load_tendencies(c: discord.Interaction):
   await c.response.send_message("Loaded.")
 
 @trans.command(name="add", description="Owner only; train me on X amount of messages in this channel")
+@discord.app_commands.describe(amount="Message count")
 async def train(c: discord.Interaction, amount: int = 50):
   if c.user.id != bot.owner_id:
     await c.response.send_message("You're not the owner.", ephemeral=True)
