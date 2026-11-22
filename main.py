@@ -6,14 +6,18 @@ import aiofiles
 import simdjson
 import discord
 from discord.ext import commands
-from discord.flags import Intents
 from dotenv import load_dotenv
 
 load_dotenv()
 
-bot = commands.Bot(command_prefix="m;", intents=Intents.all())
+bot = commands.Bot(command_prefix="m;", intents=discord.flags.Intents.all())
 
 transitions: dict[str, list[str]] = {}
+slurs = []
+
+with open("Swear_20Words.txt", "r") as f:
+  slurs = f.read().split()
+print("Naughty words loaded")
 
 with open("transitions.json", "r") as f:
   transitions = simdjson.load(f)
@@ -25,8 +29,8 @@ def add_transition(tendency: str) -> None:
   for j in _t:
     t.extend(j.split(" "))
   t = [x for x in t if x.strip()]
-  # WHAT THE FUCK
-  t = [x for x in t if not re.search(r"/^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#()?&//=]*)$/", x)]
+  t = [x for x in t if x not in slurs]
+  t = [x for x in t if "https://" not in x]
   t = [x for x in t if not re.search(r"<.+>", x)]
   print(f"\"{tendency}\" {t}", end="\n\n")
   for i, st in enumerate(t):
@@ -49,62 +53,59 @@ def generate(word_count: int) -> str:
 
 @bot.event
 async def on_ready():
+  bot.owner_id = int(os.getenv("OWNER") or 0)
+  await bot.tree.sync()
+  await bot.change_presence(activity=discord.CustomActivity(name=generate(5), emoji="💬"))
   print(f"{bot.user.name} is ready")
-  await bot.change_presence(activity=discord.CustomActivity(name=generate(5), emoji=":speech_balloon:"))
 
-@bot.command()
-async def ping(c: commands.Context):
-  """
-  Shows how long I take to answer
-  """
-  await c.reply(f"Pong!\n:wireless: {round(bot.latency*1000, 2)}ms\n:speech_balloon: {len(transitions)} states (top-level transitions)")
+@bot.tree.command(name="ping", description="Shows how long I take to answer and some other things")
+async def ping(c: discord.Interaction):
+  await c.response.send_message(f"Pong!\n:wireless: {round(bot.latency*1000, 2)}ms\n:speech_balloon: {len(transitions)} states (top-level transitions)")
 
-@bot.command(aliases=["st", "save", "s"])
-@commands.is_owner()
-async def save_transitions(c: commands.Context):
-  """
-  Owner only; save my transitions for later use
-  """
-  async with c.typing(), aiofiles.open("transitions.json", "w") as f:
-    await f.write(simdjson.dumps(transitions))
-  await c.send("Saved.")
+trans = discord.app_commands.Group(name="transitions", description="Transitions and states related commands")
 
-@bot.command(aliases=["lt", "load", "l"])
-@commands.is_owner()
-async def load_tendencies(c: commands.Context):
-  """
-  Owner only; reload my transitions for manual profanity check
-  """
+@trans.command(name="save", description="Owner only; save my transitions for later use")
+async def save_transitions(c: discord.Interaction):
+  if c.user.id != bot.owner_id:
+    await c.response.send_message("You're not the owner.", ephemeral=True)
+    return
+  async with aiofiles.open("transitions.json", "w") as f:
+    await f.write(simdjson.dumps(transitions, indent=0))
+  await c.response.send_message("Saved.")
+
+@trans.command(name="load", description="Owner only; reload my transitions for manual profanity check")
+async def load_tendencies(c: discord.Interaction):
+  if c.user.id != bot.owner_id:
+    await c.response.send_message("You're not the owner.", ephemeral=True)
+    return
   global transitions
-  async with c.typing(), aiofiles.open("transitions.json", "r") as f:
+  async with aiofiles.open("transitions.json", "r") as f:
     transitions = simdjson.loads(await f.read())
-  await c.reply("Loaded.")
+  await c.response.send_message("Loaded.")
 
-@bot.command(aliases=["view", "read", "learn"])
-@commands.is_owner()
-async def train(c: commands.Context, amount: int = 50, channel: discord.TextChannel = commands.parameter(default=lambda c: c.channel)):
-  """
-  Owner only; train my transitions on X amount of messages in a channel
-  """
+@trans.command(name="add", description="Owner only; train me on X amount of messages in Y channel")
+async def train(c: discord.Interaction, amount: int = 50, channel: discord.TextChannel | None = None):
+  if c.user.id != bot.owner_id:
+    await c.response.send_message("You're not the owner.", ephemeral=True)
+    return
+  await c.response.defer()
   try:
+    if channel is None: channel = c.message.channel
     t = 0
-    async with c.typing():
-      async for m in channel.history(limit=amount):
-        if m.author.bot or m.content.startswith("m;"): continue
-        add_transition(m.content)
-        t += 1
-    await c.reply(f"Added {t} transitions.")
+    async for m in channel.history(limit=amount):
+      if m.author.bot or m.content.startswith("m;"): continue
+      add_transition(m.content)
+      t += 1
+    await c.followup.send(f"Added {t} transitions.")
   except discord.Forbidden:
-    await c.reply("Can't read channel messages. Are you sure you gave me the Read Message History permission?")
+    await c.followup.send("Can't read channel messages. Ask the owner if he gave me the Read Message History permission?")
 
-@bot.command(aliases=["generate", "speak", "talk", "gibberish"])
-async def gen(c: commands.Context, count: int = random.randint(10, 100)):
-  """
-  Make me speak! You can also @mention me
-  """
-  async with c.typing():
-    m2 = generate(count)
-  await c.reply(m2)
+bot.tree.add_command(trans)
+
+@bot.tree.command(name="generate", description="Make me speak! You can also @mention me")
+@discord.app_commands.describe(count="Word count (default: from 10 to 100)")
+async def gen(c: discord.Interaction, count: int = random.randint(10, 100)):
+  await c.response.send_message(generate(count))
 
 @bot.event
 async def on_message(m: discord.Message):

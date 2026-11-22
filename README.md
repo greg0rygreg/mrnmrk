@@ -5,7 +5,6 @@ A Discord bot that uses Markov chains to speak and listen
 https://discord.com/oauth2/authorize?client_id=1573727390507598015
 
 # Commands
-Prefix is `m;`
 
 **`ping`**: Shows latency in ms and amount of transitions saved
 
@@ -18,6 +17,9 @@ Prefix is `m;`
 **`gen [count]`, `generate [count]`, `speak [count]`, `talk [count]`, `gibberish [count]`**: Makes the bot talk using [count] words
 
 **Mentioning the bot**: Makes the bot talk using 10-100 words
+
+# Honourable mentions
+timgaunt: [Swear word list](https://gist.github.com/timgaunt/a7e9fff6f04c20925b3282a5063e08e9#file-swear-words-txt)
 
 # AI Disclosure
 No AI was used here. F❤️k off AI bros.
