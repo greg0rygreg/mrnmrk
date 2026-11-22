@@ -77,7 +77,11 @@ async def on_ready():
 @discord.app_commands.allowed_installs(guilds=True, users=True)
 @discord.app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
 async def ping(c: discord.Interaction):
-  await c.response.send_message(f"Pong!\n:wireless: {round(bot.latency*1000, 2)}ms\n:speech_balloon: {len(transitions)} states (top-level transitions)")
+  await c.response.defer()
+  a = 0
+  for b in transitions:
+    a += len(b)
+  await c.followup.send(f"Pong!\n:wireless: {round(bot.latency*1000, 2)}ms\n:speech_balloon: {len(transitions)} states ({a} total transitions)")
 
 trans = discord.app_commands.Group(name="transitions", description="Transitions and states related commands")
 
