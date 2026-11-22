@@ -1,5 +1,5 @@
 # Merenus Markov
-*It's time to continue.*
+*Welcome back! I hope you've had a good a rest. It's time to continue.*
 
 A Discord bot that uses Markov chains to speak and listen  
 https://discord.com/oauth2/authorize?client_id=1573727390507598015
@@ -8,13 +8,15 @@ https://discord.com/oauth2/authorize?client_id=1573727390507598015
 
 **`ping`**: Shows latency in ms and amount of transitions saved
 
-**`save_transitions`, `st`, `save`, `s`**: Saves the transitions it's recorded before shutdown. **Remember to use**
+**`transitions save`**: Saves the transitions it's recorded before shutdown. **Remember to use**
 
-**`load_transitions`, `lt`, `l`, `load`**: Loads transitions from disk
+**`transitions load`**: Loads transitions from disk
 
-**`train [amount] [channel]`, `view [amount] [channel]`, `read [amount] [channel]`, `learn [amount] [channel]`**: Adds [amount] messages from [channel] as transitions
+**`transitions clear`**: Clears transitions from RAM. Do NOT save unless you are ABSOLUTELY sure of what you're doing.
 
-**`gen [count]`, `generate [count]`, `speak [count]`, `talk [count]`, `gibberish [count]`**: Makes the bot talk using [count] words
+**`transitions add [amount] [channel]`**: Adds [amount] messages from [channel] as transitions
+
+**`generate [count]`**: Makes the bot talk using [count] words
 
 **Mentioning the bot**: Makes the bot talk using 10-100 words
 
