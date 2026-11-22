@@ -1,3 +1,4 @@
+from discord import HTTPException
 import os
 import random
 import re
@@ -10,7 +11,18 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-bot = commands.Bot(command_prefix="m;", intents=discord.flags.Intents.all())
+class MerenusMarkov(commands.Bot):
+  async def async_cleanup(self):  # example cleanup function
+      print("\nClean up")
+      async with aiofiles.open("transitions.json", "w") as f:
+        await f.write(simdjson.dumps(transitions, indent=0))
+      print(f"Saved {len(transitions)} states")
+
+  async def close(self):
+      await self.async_cleanup()
+      await super().close()
+
+bot = MerenusMarkov(command_prefix="m;", intents=discord.flags.Intents.all())
 
 transitions: dict[str, list[str]] = {}
 slurs = []
@@ -58,13 +70,14 @@ async def on_ready():
   await bot.change_presence(activity=discord.CustomActivity(name=generate(5) or "(empty)"))
   print(f"{bot.user.name} is ready")
 
+
 @bot.tree.command(name="ping", description="Shows how long I take to answer and some other things")
 async def ping(c: discord.Interaction):
   await c.response.send_message(f"Pong!\n:wireless: {round(bot.latency*1000, 2)}ms\n:speech_balloon: {len(transitions)} states (top-level transitions)")
 
 trans = discord.app_commands.Group(name="transitions", description="Transitions and states related commands")
 
-@trans.command(name="save", description="Owner only; save my transitions for later use")
+@trans.command(name="save", description="Owner only; save my transitions for testing")
 async def save_transitions(c: discord.Interaction):
   if c.user.id != bot.owner_id:
     await c.response.send_message("You're not the owner.", ephemeral=True)
@@ -84,24 +97,24 @@ async def load_tendencies(c: discord.Interaction):
   await bot.change_presence(activity=discord.CustomActivity(name=generate(5) or "(empty)"))
   await c.response.send_message("Loaded.")
 
-@trans.command(name="add", description="Owner only; train me on X amount of messages in Y channel")
-async def train(c: discord.Interaction, amount: int = 50, channel: discord.TextChannel | None = None):
+@trans.command(name="add", description="Owner only; train me on X amount of messages in this channel")
+async def train(c: discord.Interaction, amount: int = 50):
   if c.user.id != bot.owner_id:
     await c.response.send_message("You're not the owner.", ephemeral=True)
     return
   await c.response.defer()
   try:
-    if channel is None: channel = c.channel
     t = 0
-    async for m in channel.history(limit=amount):
+    async for m in c.channel.history(limit=amount):
       if m.author.bot or m.content.startswith("m;"): continue
       add_transition(m.content)
       t += 1
     await c.followup.send(f"Added {t} transitions.")
   except discord.Forbidden:
-    await c.followup.send("Can't read channel messages. Ask the owner if he gave me the Read Message History permission?")
-  except discord.app_commands.errors.TransformerError:
-    await c.followup.send("Can't read channel messages. Transformer error.")
+    if bot.user in c.guild.members:
+      await c.followup.send("Can't read channel messages. Ask the owner if he gave me the Read Message History permission?")
+    else:
+      await c.followup.send("Can't read channel messages. This command was ran while I'm installed as a user app, not server bot.")
 
 @trans.command(name="clear", description="Owner only; clear EVERY SINGLE TRANSITION. This is reversable, as long as you don't save")
 async def clear(c: discord.Interaction):
@@ -117,7 +130,10 @@ bot.tree.add_command(trans)
 @bot.tree.command(name="generate", description="Make me speak! You can also @mention me")
 @discord.app_commands.describe(count="Word count (default: from 10 to 100)")
 async def gen(c: discord.Interaction, count: int = random.randint(10, 100)):
-  await c.response.send_message(generate(count))
+  try:
+    await c.response.send_message(generate(count))
+  except HTTPException:
+    await c.response.send_message("Final message too long. Probably.")
 
 @bot.event
 async def on_message(m: discord.Message):
