@@ -24,15 +24,20 @@ class MerenusMarkov(commands.Bot):
 bot = MerenusMarkov(command_prefix="m;", intents=discord.flags.Intents.all())
 
 transitions: dict[str, list[str]] = {}
-slurs = []
+names: dict[str, str]
+slurs: list[str] = []
+
+with open("transitions/phrases.json", "r") as f:
+  transitions = simdjson.load(f)
+print(f"{len(transitions)} phrase states loaded")
+
+with open("transitions/names.json", "r") as f:
+  names = simdjson.load(f)
+print(f"{len(names)} name states loaded")
 
 with open("Swear_20Words.txt", "r") as f:
   slurs = f.read().split("\n")
 print(f"{len(slurs)} naughty words loaded")
-
-with open("transitions.json", "r") as f:
-  transitions = simdjson.load(f)
-print(f"{len(transitions)} states loaded")
 
 def add_transition(transition: str) -> None:
   _t = transition.split("\n")
@@ -50,7 +55,7 @@ def add_transition(transition: str) -> None:
       if not transitions.get(st): transitions[st] = []
       transitions[st].append(t[i+1])
 
-def generate(word_count: int) -> str:
+def generate_phrase(word_count: int) -> str:
   c = ""
   m2 = ""
   try:
@@ -65,11 +70,26 @@ def generate(word_count: int) -> str:
 
   return m2
 
+def generate_name(letter_count: int) -> str:
+  c = ""
+  m2 = ""
+  try:
+    for i in range(letter_count):
+      while not transitions.get(c):
+        c = random.choice(list(names.keys()))
+      v = random.choice(names[c])
+      c = v
+      m2 += v
+  except:
+    m2 = "john"
+
+  return m2.title()
+
 @bot.event
 async def on_ready():
   bot.owner_id = int(os.getenv("OWNER"))
   await bot.tree.sync()
-  await bot.change_presence(activity=discord.CustomActivity(name=generate(10)))
+  await bot.change_presence(activity=discord.CustomActivity(name=generate_phrase(10)))
   print(f"{bot.user.name} is ready")
 
 
@@ -81,7 +101,7 @@ async def ping(c: discord.Interaction):
   a = 0
   for b in transitions:
     a += len(b)
-  await c.followup.send(f"Pong!\n:wireless: {round(bot.latency*1000, 2)}ms\n:speech_balloon: {len(transitions)} states ({a} total transitions)")
+  await c.followup.send(f"Pong!\n:wireless: {round(bot.latency*1000, 2)}ms\n:speech_balloon: {len(transitions)} states ({a} total transitions)\n:person: Many possible names (idk how many lol)")
 
 trans = discord.app_commands.Group(name="transitions", description="Transitions and states related commands")
 
@@ -102,7 +122,7 @@ async def load_tendencies(c: discord.Interaction):
   global transitions
   async with aiofiles.open("transitions.json", "r") as f:
     transitions = simdjson.loads(await f.read())
-  await bot.change_presence(activity=discord.CustomActivity(name=generate(10)))
+  await bot.change_presence(activity=discord.CustomActivity(name=generate_phrase(10)))
   await c.response.send_message("Loaded.")
 
 @trans.command(name="add", description="Owner only; train me on X amount of messages in this channel")
@@ -149,18 +169,28 @@ async def file_train(c: discord.Interaction, file: discord.Attachment):
   after = len(transitions)
   await c.followup.send(f"Added {after-before} states.")
 
-bot.tree.add_command(trans)
+generate = discord.app_commands.Group(name="generate", description="Commands related to Markov chains generated content")
 
-@bot.tree.command(name="generate", description="Make me speak! You can also @mention me")
+@generate.command(name="phrase", description="Generates a phrase using Markov chains (train me by speaking!)")
 @discord.app_commands.describe(count="Word count (default: from 10 to 100)")
-@discord.app_commands.allowed_installs(guilds=True, users=True)
-@discord.app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
-async def gen(c: discord.Interaction, count: int = random.randint(10, 100)):
+async def genP(c: discord.Interaction, count: int = random.randint(10, 100)):
   await c.response.defer()
   try:
-    await c.followup.send(generate(count))
+    await c.followup.send(generate_phrase(count))
   except discord.HTTPException:
     await c.followup.send("Final message too long. Probably.")
+
+@generate.command(name="name", description="Generates a name using Markov chains")
+@discord.app_commands.describe(count="Letter count (default: from 3 to 10)")
+async def genN(c: discord.Interaction, count: int = random.randint(3, 10)):
+  await c.response.defer()
+  try:
+    await c.followup.send(generate_name(count))
+  except discord.HTTPException:
+    await c.followup.send("Final message too long. Probably.")
+
+bot.tree.add_command(trans)
+bot.tree.add_command(generate)
 
 @bot.event
 async def on_message(m: discord.Message):
@@ -169,7 +199,7 @@ async def on_message(m: discord.Message):
   if m.content.strip() != bot.user.mention: add_transition(m.content)
   else:
     async with m.channel.typing():
-      m2 = generate(random.randint(10, 100))
+      m2 = generate_phrase(random.randint(10, 100))
     await m.channel.send(m2)
 
 bot.run(os.getenv("TOKEN"))

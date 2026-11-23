@@ -41,6 +41,7 @@ https://discord.com/oauth2/authorize?client_id=1573727390507598015
 
 # Honourable mentions
 timgaunt: [Swear word list](https://gist.github.com/timgaunt/a7e9fff6f04c20925b3282a5063e08e9#file-swear-words-txt)
+FinNLP: [Human names list](https://github.com/FinNLP/humannames)
 
 # AI Disclosure
 No AI was used here. F❤️k off AI bros.
