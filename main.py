@@ -114,7 +114,7 @@ async def save_transitions(c: discord.Interaction):
   if c.user.id != bot.owner_id:
     await c.response.send_message("You're not the owner.", ephemeral=True)
     return
-  async with aiofiles.open("transitions.json", "w") as f:
+  async with aiofiles.open("transitions/phrases.json", "w") as f:
     await f.write(simdjson.dumps(transitions, indent=0))
   await c.response.send_message("Saved.")
 
@@ -124,7 +124,7 @@ async def load_tendencies(c: discord.Interaction):
     await c.response.send_message("You're not the owner.", ephemeral=True)
     return
   global transitions
-  async with aiofiles.open("transitions.json", "r") as f:
+  async with aiofiles.open("transitions/phrases.json", "r") as f:
     transitions = simdjson.loads(await f.read())
   await bot.change_presence(activity=discord.CustomActivity(name=generate_phrase(10)))
   await c.response.send_message("Loaded.")
