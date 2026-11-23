@@ -1,10 +1,6 @@
-import os
-import random
-import re
-import aiofiles
+import os, random, re, aiofiles, time
 
-import simdjson
-import discord
+import simdjson, discord
 from discord.ext import commands
 from dotenv import load_dotenv
 
@@ -27,6 +23,8 @@ transitions: dict[str, list[str]] = {}
 names: dict[str, str]
 slurs: list[str] = []
 
+start = time.time_ns()
+
 with open("transitions/phrases.json", "r") as f:
   transitions = simdjson.load(f)
 print(f"{len(transitions)} phrase states loaded")
@@ -38,6 +36,10 @@ print(f"{len(names)} name states loaded")
 with open("Swear_20Words.txt", "r") as f:
   slurs = f.read().split("\n")
 print(f"{len(slurs)} naughty words loaded")
+
+end = time.time_ns()
+
+print(f"Loaded everything but the bot in {round((end-start)/1_000_000_000, 4)}s")
 
 def add_transition(transition: str) -> None:
   _t = transition.split("\n")
@@ -104,7 +106,7 @@ async def ping(c: discord.Interaction, nerdy: bool = False):
   for b in transitions:
     a += len(b)
   if nerdy:
-    m += f"\n:speech_balloon: {len(transitions)} phrase states ({a} total transitions)\n:person: {len(names)} name states (Transitions: `{", ".join([f"{k}: {len(names[k])}" for k in names.keys()])}`)"
+    m += f"\n:speech_balloon: {len(transitions)} phrase states ({a} total transitions)\n:person: {len(names)} name states (Transitions: `{", ".join([f"{k}: {len(names[k])}" for k in names.keys()])}`)\n:arrows_clockwise: Loaded everything but the bot in {round((end-start)/1_000_000_000, 4)}s"
   await c.followup.send(m)
 
 trans = discord.app_commands.Group(name="transitions", description="Transitions and states related commands")
