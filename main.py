@@ -13,7 +13,7 @@ load_dotenv()
 class MerenusMarkov(commands.Bot):
   async def async_cleanup(self):
       print("\nClean up")
-      async with aiofiles.open("transitions.json", "w") as f:
+      async with aiofiles.open("transitions/phrases.json", "w") as f:
         await f.write(simdjson.dumps(transitions, indent=0))
       print(f"Saved {len(transitions)} states")
 
