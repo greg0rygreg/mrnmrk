@@ -94,14 +94,18 @@ async def on_ready():
 
 
 @bot.tree.command(name="ping", description="Shows how long I take to answer and some other things")
+@discord.app_commands.describe(nerdy="Show extra debug info (default: False)")
 @discord.app_commands.allowed_installs(guilds=True, users=True)
 @discord.app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
-async def ping(c: discord.Interaction):
+async def ping(c: discord.Interaction, nerdy: bool = False):
   await c.response.defer()
+  m = f"Pong!\n:wireless: Latency: {round(bot.latency*1000, 2)}ms"
   a = 0
   for b in transitions:
     a += len(b)
-  await c.followup.send(f"Pong!\n:wireless: {round(bot.latency*1000, 2)}ms\n:speech_balloon: {len(transitions)} states ({a} total transitions)\n:person: Many possible names (idk how many lol)")
+  if nerdy:
+    m += f"\n:speech_balloon: {len(transitions)} phrase states ({a} total transitions)\n:person: {len(names)} name states (Transitions: `{", ".join([f"{k}: {len(names[k])}" for k in names.keys()])}`)"
+  await c.followup.send(m)
 
 trans = discord.app_commands.Group(name="transitions", description="Transitions and states related commands")
 
@@ -181,8 +185,8 @@ async def genP(c: discord.Interaction, count: int = random.randint(10, 100)):
     await c.followup.send("Final message too long. Probably.")
 
 @generate.command(name="name", description="Generates a name using Markov chains")
-@discord.app_commands.describe(count="Letter count (default: from 3 to 10)")
-async def genN(c: discord.Interaction, count: int = random.randint(3, 10)):
+@discord.app_commands.describe(count="Letter count (default: 10)")
+async def genN(c: discord.Interaction, count: int = 10):
   await c.response.defer()
   try:
     await c.followup.send(generate_name(count))
@@ -195,7 +199,7 @@ bot.tree.add_command(generate)
 @bot.event
 async def on_message(m: discord.Message):
   await bot.process_commands(m)
-  if m.author.bot or m.content.startswith("m;"): return
+  if m.author.bot or m.content.startswith("m;") or not m.content.strip(): return
   if m.content.strip() != bot.user.mention: add_transition(m.content)
   else:
     async with m.channel.typing():
